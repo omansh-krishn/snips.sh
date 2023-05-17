@@ -35,7 +35,7 @@ func MetaHandler(cfg *config.Config) http.HandlerFunc {
 				"ssh_session_dur_seconds": cfg.Limits.SessionDuration.Seconds(),
 				"ssh_session_dur_human":   cfg.Limits.SessionDuration.String(),
 			},
-			"guesser_enabled": cfg.EnableGuesser,
+			"guesser_enabled": cfg.CanUseGuesser(),
 			"http":            cfg.HTTP.External.String(),
 			"ssh":             cfg.SSH.External.String(),
 		}

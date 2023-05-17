@@ -9,15 +9,19 @@ RUN go mod verify
 
 COPY . .
 
-RUN script/install-libtensorflow
+RUN mkdir -p /tmp/extra-lib
+RUN if [ "$(uname -m)" = "x86_64" ]; then \
+  script/install-libtensorflow; \
+  cp /usr/local/lib/libtensorflow.so.2 /tmp/extra-lib/; \
+  cp /usr/local/lib/libtensorflow_framework.so.2 /tmp/extra-lib/; \
+  fi
 
 RUN go build -a -o 'snips.sh'
 
 FROM ubuntu:20.04
 
 COPY --from=build /build/snips.sh /usr/bin/snips.sh
-COPY --from=build /usr/local/lib/libtensorflow.so.2 /usr/local/lib/
-COPY --from=build /usr/local/lib/libtensorflow_framework.so.2 /usr/local/lib/
+COPY --from=build /tmp/extra-lib/* /usr/local/lib/
 
 RUN ldconfig
 

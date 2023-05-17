@@ -317,7 +317,7 @@ func (h *SessionHandler) Upload(sesh *UserSession) {
 				Content: content,
 				Size:    size,
 				UserID:  sesh.UserID(),
-				Type:    renderer.DetectFileType(content, flags.Extension, h.Config.EnableGuesser),
+				Type:    renderer.DetectFileType(content, flags.Extension, h.Config.CanUseGuesser()),
 			}
 
 			if err := h.DB.CreateFile(sesh.Context(), &file, h.Config.Limits.FilesPerUser); err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"runtime"
 	"text/tabwriter"
 	"time"
 
@@ -21,7 +22,8 @@ KEY	TYPE	DEFAULT	DESCRIPTION
 type Config struct {
 	Debug bool `default:"False" desc:"enable debug logging and pprof"`
 
-	EnableGuesser bool `default:"True" desc:"enable guesslang model to detect file types"`
+	// NOTE: use CanUseGuesser() to check if guesslang is enabled, requires arch check
+	EnableGuesser bool `default:"True" desc:"enable guesslang model to detect file types (not supported on arm)"`
 
 	HMACKey string `default:"hmac-and-cheese" desc:"symmetric key used to sign URLs"`
 
@@ -77,6 +79,12 @@ func (cfg *Config) SSHCommandForFile(fileID string) string {
 	}
 
 	return sshCommand
+}
+
+func (cfg *Config) CanUseGuesser() bool {
+	// currently not shipping libtensorflow for arm
+	// https://github.com/robherley/snips.sh/issues/39
+	return runtime.GOARCH != "arm" && cfg.EnableGuesser
 }
 
 func Load() (*Config, error) {

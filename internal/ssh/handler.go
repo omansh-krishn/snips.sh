@@ -374,14 +374,16 @@ func (h *SessionHandler) Upload(sesh *UserSession) {
 			}
 			noti.Render(sesh)
 
-			var targetURL string
-			var expires time.Time
-			var signedURL url.URL
+			var (
+				targetURL url.URL
+				signedURL url.URL
+				expires   time.Time
+			)
 
 			if file.Private && flags.TTL.Seconds() > 0 {
 				signedURL, expires = file.GetSignedURL(h.Config, flags.TTL)
 				log.Info().Str("file_id", file.ID).Time("expires_at", expires).Msg("private file signed")
-				targetURL = signedURL.String()
+				targetURL = signedURL
 			} else {
 				targetURL = h.Config.HTTPAddressForFile(file.ID)
 			}
@@ -389,7 +391,7 @@ func (h *SessionHandler) Upload(sesh *UserSession) {
 			url := lipgloss.NewStyle().
 				Foreground(styles.Colors.Blue).
 				Underline(true).
-				Render(targetURL)
+				Render(targetURL.String())
 
 			noti = Notification{
 				Title:   "URL 🔗",

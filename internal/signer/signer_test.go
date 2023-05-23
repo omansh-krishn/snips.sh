@@ -44,6 +44,11 @@ func TestSigner_SignURL(t *testing.T) {
 			url:  parseURL("/f/5yiAwU0Ax"),
 			want: parseURL("/f/5yiAwU0Ax?sig=JBKBf9df4nXmm5tgmIacQ9ASE6ZyJlnirW46R5Hzm5Y%3D"),
 		},
+		{
+			name: "with path prefix",
+			url:  parseURL("/some/prefix/f/5yiAwU0Ax"),
+			want: parseURL("/some/prefix/f/5yiAwU0Ax?sig=4hWciLPEtwnvUytoWExAFMEqj6hPV5ICg_C0iGESfHg%3D"),
+		},
 	}
 
 	for _, tc := range testcases {
@@ -83,6 +88,11 @@ func TestSigner_VerifyURL(t *testing.T) {
 		{
 			name: "valid - just path",
 			url:  parseURL("/f/5yiAwU0Ax?sig=JBKBf9df4nXmm5tgmIacQ9ASE6ZyJlnirW46R5Hzm5Y%3D"),
+			want: true,
+		},
+		{
+			name: "valid - with path prefix",
+			url:  parseURL("/some/prefix/f/5yiAwU0Ax?sig=4hWciLPEtwnvUytoWExAFMEqj6hPV5ICg_C0iGESfHg%3D"),
 			want: true,
 		},
 		{

@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -92,6 +93,7 @@ func FileHandler(cfg *config.Config, database db.DB, tmpl *template.Template) ht
 		fileID := strings.TrimPrefix(r.URL.Path, "/f/")
 
 		if fileID == "" {
+			log.Warn().Str("file_id", fileID).Msg("file not found")
 			http.NotFound(w, r)
 			return
 		}
@@ -108,7 +110,7 @@ func FileHandler(cfg *config.Config, database db.DB, tmpl *template.Template) ht
 			return
 		}
 
-		isSignedAndNotExpired := IsSignedAndNotExpired(signer, r)
+		isSignedAndNotExpired := IsSignedAndNotExpired(signer, r, cfg.HTTP.External.Path)
 
 		if file.Private && !isSignedAndNotExpired {
 			log.Warn().Msg("attempted to access private file")
@@ -130,7 +132,7 @@ func FileHandler(cfg *config.Config, database db.DB, tmpl *template.Template) ht
 			q.Add("r", "1")
 
 			rawPathURL := url.URL{
-				Path:     r.URL.Path,
+				Path:     path.Join(cfg.HTTP.External.Path, r.URL.Path),
 				RawQuery: q.Encode(),
 			}
 
@@ -179,13 +181,13 @@ func FileHandler(cfg *config.Config, database db.DB, tmpl *template.Template) ht
 	}
 }
 
-func IsSignedAndNotExpired(s *signer.Signer, r *http.Request) bool {
+func IsSignedAndNotExpired(s *signer.Signer, r *http.Request, pathPrefix string) bool {
 	if r.URL == nil {
 		return false
 	}
 
 	urlToVerify := url.URL{
-		Path:     r.URL.Path,
+		Path:     path.Join(pathPrefix, r.URL.Path),
 		RawQuery: r.URL.RawQuery,
 	}
 

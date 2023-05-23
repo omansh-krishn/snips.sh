@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 	"net/http/pprof"
+	"strings"
 
 	"github.com/robherley/snips.sh/internal/config"
 	"github.com/robherley/snips.sh/internal/db"
@@ -39,9 +40,14 @@ func New(cfg *config.Config, database db.DB, assets *Assets) (*Service, error) {
 		r.HandleFunc("/_debug/pprof/trace", pprof.Trace)
 	}
 
+	handler := WithMiddleware(r, WithRecover, WithLogger, WithRequestID)
+	if strings.Trim(cfg.HTTP.External.Path, "/") != "" {
+		handler = http.StripPrefix(cfg.HTTP.External.Path, handler)
+	}
+
 	httpServer := &http.Server{
 		Addr:    cfg.HTTP.Internal.Host,
-		Handler: WithMiddleware(r, WithRecover, WithLogger, WithRequestID),
+		Handler: handler,
 	}
 
 	return &Service{httpServer}, nil

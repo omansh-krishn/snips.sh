@@ -1,7 +1,6 @@
 package snips
 
 import (
-	"fmt"
 	"net/url"
 	"strconv"
 	"time"
@@ -37,8 +36,10 @@ func (f *File) IsMarkdown() bool {
 func (f *File) GetSignedURL(cfg *config.Config, ttl time.Duration) (url.URL, time.Time) {
 	expires := time.Now().Add(ttl).UTC()
 
+	println("want:", cfg.HTTPAddressForFile(f.ID).Path)
+
 	pathToSign := url.URL{
-		Path: fmt.Sprintf("/f/%s", f.ID),
+		Path: cfg.HTTPAddressForFile(f.ID).Path,
 		RawQuery: url.Values{
 			"exp": []string{strconv.FormatInt(expires.Unix(), 10)},
 		}.Encode(),

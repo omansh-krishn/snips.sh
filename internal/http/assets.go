@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/robherley/snips.sh/internal/config"
 	"github.com/rs/zerolog/log"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/css"
@@ -52,7 +53,7 @@ type Assets struct {
 }
 
 // NewAssets holds the templates, static content and minifies accordingly.
-func NewAssets(webFS *embed.FS, docsFS *embed.FS, readme []byte, extendHeadFile string) (*Assets, error) {
+func NewAssets(cfg *config.Config, webFS *embed.FS, docsFS *embed.FS, readme []byte) (*Assets, error) {
 	assets := &Assets{
 		webFS:  webFS,
 		docsFS: docsFS,
@@ -68,8 +69,8 @@ func NewAssets(webFS *embed.FS, docsFS *embed.FS, readme []byte, extendHeadFile 
 		extendHeadContent string
 	)
 
-	if extendHeadFile != "" {
-		if headContent, err := os.ReadFile(extendHeadFile); err == nil {
+	if cfg.HTML.ExtendHeadFile != "" {
+		if headContent, err := os.ReadFile(cfg.HTML.ExtendHeadFile); err == nil {
 			extendHeadContent = string(headContent)
 		} else {
 			log.Warn().Err(err).Msg("unable to extend head content")
@@ -78,8 +79,20 @@ func NewAssets(webFS *embed.FS, docsFS *embed.FS, readme []byte, extendHeadFile 
 
 	tmpl := template.New("file")
 	tmpl.Funcs(template.FuncMap{
+		// adds the ability to extend the head content
 		"ExtendedHeadContent": func() template.HTML {
 			return template.HTML(extendHeadContent)
+		},
+		// used for relative links to support path prefixes
+		"link": func(to string) string {
+			if to == "" || to == "/" {
+				// if the path is empty or just a slash, return the path prefix
+				// needs the trailing slash or else doesn't match the router 🤷
+				return strings.TrimRight(cfg.HTTP.External.Path, "/") + "/"
+			}
+
+			// otherwise, join the path prefix with the path
+			return path.Join(cfg.HTTP.External.Path, to)
 		},
 	})
 

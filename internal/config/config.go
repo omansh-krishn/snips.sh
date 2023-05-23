@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path"
 	"runtime"
+	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -67,11 +69,13 @@ func (cfg *Config) PrintUsage() error {
 	return envconfig.Usagef(ApplicationName, cfg, tabs, UsageFormat)
 }
 
-func (cfg *Config) HTTPAddressForFile(fileID string) string {
+func (cfg *Config) HTTPAddressForFile(fileID string) url.URL {
 	httpAddr := cfg.HTTP.External
-	httpAddr.Path = fmt.Sprintf("/f/%s", fileID)
-
-	return httpAddr.String()
+	httpAddr.Path = path.Join(httpAddr.Path, "f", fileID)
+	if !strings.HasPrefix(httpAddr.Path, "/") {
+		httpAddr.Path = "/" + httpAddr.Path
+	}
+	return httpAddr
 }
 
 func (cfg *Config) SSHCommandForFile(fileID string) string {

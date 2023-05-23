@@ -138,7 +138,8 @@ func (bwsr Browser) renderDetails() string {
 
 	file := bwsr.files[bwsr.table.index]
 
-	httpAddr := bwsr.cfg.HTTPAddressForFile(file.ID)
+	addr := bwsr.cfg.HTTPAddressForFile(file.ID)
+	httpAddr := addr.String()
 	visibility := "public"
 	if file.Private {
 		httpAddr = styles.C(styles.Colors.Muted, "<none> (requires a signed URL)")
